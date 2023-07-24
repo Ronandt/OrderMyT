@@ -21,9 +21,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.fragment.app.FragmentActivity
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgs
+import androidx.navigation.navArgument
 import com.example.ordermyt.ui.theme.AppBarColor
 import com.example.ordermyt.ui.theme.OrderMyTTheme
 
@@ -48,11 +51,21 @@ class MainActivity : FragmentActivity() {
                         LoginScreen({navControllerState.navigate("home")})
                     }
                     composable("home") {
-                        HomeScreen({navControllerState.navigate("feedback")}, applicationContext)
+                        HomeScreen({navControllerState.navigate("feedback")}, applicationContext, {navControllerState.navigate("checkout")})
                     }
 
                     composable("feedback") {
                         FeedbackScreen(this@MainActivity)
+                    }
+
+                    composable("checkout") {
+                        CheckoutScreen({navControllerState.navigate("home")}, {it -> navControllerState.navigate(it)})
+                    }
+                    composable("editOrder/{orderIndex}", arguments = listOf(navArgument("orderIndex") {
+                        type = NavType.IntType
+                    })) { navBackStackEntry ->
+                        val orderIndex = navBackStackEntry.arguments?.getInt("orderIndex")
+                        orderIndex?.let { EditOrderScreen(it, {navControllerState.navigate("checkout")}) }
                     }
                 }
             }
@@ -62,9 +75,9 @@ class MainActivity : FragmentActivity() {
 
 
 @Composable
-fun AppBar() {
+fun AppBar(navigate: () -> Unit = {}) {
     TopAppBar(backgroundColor = AppBarColor, title = {Text("OrderMyT")}, actions = { IconButton(
-        onClick = { /*TODO*/ }) {
+        onClick = navigate) {
         Icon(Icons.Outlined.ShoppingCart, contentDescription = " Shopping Cart" )
     }})
 
